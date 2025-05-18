@@ -152,6 +152,14 @@ def translate_to_spanish_with_gemini(text):
 
 # --- API Endpoints ---
 
+@app.route("/", methods=['GET'])
+@app.route("/index.html/<word>", methods=['GET'])
+def serve_index(word=None):
+    """Serve the main index.html page, optionally with a word parameter for direct lookup."""
+    # This route will serve the index.html file and pass the word parameter
+    # The frontend JS will handle the actual lookup based on the URL parameter
+    return "", 200 # This is a placeholder as we'll handle everything in the frontend
+    
 @app.route("/api/search", methods=['POST'])
 def search_word():
     if not db:

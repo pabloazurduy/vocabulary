@@ -151,11 +151,14 @@ function displayWordList(words) {
         const createdDate = word.created_at ? formatFirestoreTimestamp(word.created_at) : 'N/A';
         const lastViewedDate = word.last_viewed_at ? formatFirestoreTimestamp(word.last_viewed_at) : 'N/A';
         
+        // Create encoded URL for the word
+        const wordUrl = `index.html/${encodeURIComponent(word.english_word)}`;
+        
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-app-surface-lighter transition-colors';
         tr.innerHTML = `
             <td class="px-6 py-4">
-                <span class="font-medium text-app-accent">${word.english_word}</span>
+                <a href="${wordUrl}" class="font-medium text-app-accent hover:underline cursor-pointer">${word.english_word}</a>
             </td>
             <td class="px-6 py-4">
                 <p class="text-sm text-app-text-primary line-clamp-2 min-w-[150px]">${word.definition}</p>
@@ -317,5 +320,19 @@ function showPracticeFeedback(isCorrect, correctDefinition) {
 
 // --- Initial Setup ---
 document.addEventListener('DOMContentLoaded', () => {
-    showView('search-view');
+    // Check URL for a specific word to look up
+    const pathSegments = window.location.pathname.split('/');
+    const word = pathSegments[pathSegments.length - 1];
+    
+    // If URL contains a word after index.html/
+    if (pathSegments.length > 1 && pathSegments.includes('index.html') && word !== 'index.html') {
+        // Show the search view first
+        showView('search-view');
+        // Fill the search input with the word from the URL
+        document.getElementById('search-input').value = decodeURIComponent(word);
+        // Trigger search
+        document.getElementById('search-button').click();
+    } else {
+        showView('search-view');
+    }
 });
