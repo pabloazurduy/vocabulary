@@ -1,0 +1,194 @@
+/**
+ * Vocabulary App Styles
+ * Main stylesheet for the Vocabulary Learning Application
+ */
+
+/* ------------------------------
+   Base & Typography Styles
+   ------------------------------ */
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* ------------------------------
+   Dark Theme Colors
+   ------------------------------ */
+   
+:root {
+    /* Main background */
+    --app-bg: #121212;
+    /* Cards, sections */
+    --app-surface: #1E1E1E;
+    /* Lighter sections */
+    --app-surface-lighter: #2C2C2C;
+    --app-text-primary: #E0E0E0;
+    --app-text-secondary: #B0B0B0;
+    /* Primary accent color */
+    --app-accent: #5D9CEC;
+    --app-accent-hover: #4A89CC;
+    /* Success color */
+    --app-green: #66BB6A;
+    /* Error color */
+    --app-red: #EF5350;
+    --app-border: #333333;
+}
+
+/* ------------------------------
+   Layout Components
+   ------------------------------ */
+
+/* Sidebar */
+#sidebar {
+    position: fixed;
+    width: 16rem; /* 64px */
+    min-height: 100vh;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--app-surface);
+    border-right: 1px solid var(--app-border);
+    padding: 1.5rem;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+@media (min-width: 768px) {
+    #sidebar {
+        position: relative;
+        transform: translateX(0);
+    }
+}
+
+/* Mobile Navigation */
+#mobile-nav-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 30;
+    background-color: var(--app-surface);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+#mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    display: none;
+    transition: opacity 0.3s;
+}
+
+/* Main Content Area */
+main {
+    flex: 1;
+    padding: 1rem;
+    margin-top: 4rem;
+}
+
+@media (min-width: 768px) {
+    main {
+        padding: 2rem;
+        margin-top: 0;
+    }
+    
+    #mobile-nav-toggle {
+        display: none;
+    }
+}
+
+/* ------------------------------
+   Components
+   ------------------------------ */
+
+/* Card styles */
+.card {
+    background-color: var(--app-surface);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Input styles */
+input[type="text"] {
+    width: 100%;
+    background-color: var(--app-surface-lighter);
+    border: 1px solid var(--app-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: var(--app-text-primary);
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--app-accent);
+}
+
+/* Button styles */
+.btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--app-accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--app-accent-hover);
+}
+
+/* Table styles */
+table {
+    width: 100%;
+}
+
+th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--app-text-secondary);
+    letter-spacing: 0.05em;
+}
+
+tbody {
+    border-top: 1px solid var(--app-border);
+}
+
+tr {
+    border-bottom: 1px solid var(--app-border);
+}
+
+/* ------------------------------
+   Utility Classes
+   ------------------------------ */
+
+.hidden {
+    display: none;
+}
+
+/* ------------------------------
+   Mobile Responsive Helpers
+   ------------------------------ */
+
+@media (max-width: 768px) {
+    .mobile-nav-open {
+        transform: translateX(0) !important;
+    }
+    
+    .mobile-overlay-visible {
+        display: block !important;
+    }
+}
