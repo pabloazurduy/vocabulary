@@ -26,6 +26,7 @@ let currentQuizWordKey = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Vocabulary App Initialized');
+    setupTabs(); // Initialize tab navigation from ui.js
 
     const searchButton = document.getElementById('search-button');
     const searchInput = document.getElementById('search-input');
@@ -58,18 +59,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         updateSearchResultsUI(word, definition, translation);
                     } catch (error) {
                         console.error('Error during word search:', error);
-                        displayErrorUI(error.message || 'Failed to search for word.');
+                        displayErrorUI(error.message || 'Failed to search for word.', 'search'); // Specify area
                     }
                 }
                 searchInput.value = ''; // Clear input after search
             } else {
-                displayErrorUI('Please enter a word.');
+                displayErrorUI('Please enter a word.', 'search'); // Specify area
             }
         });
     }
 
     initPracticeMode(); // Initialize Practice Mode
-    initWordListView(); // Initialize Word List View
+    // initWordListView(); // Call to initWordListView removed as the button it managed is gone.
+    // The word list is now rendered by setupTabs in ui.js calling renderWordList directly.
 });
 
 function initPracticeMode() {
@@ -98,6 +100,15 @@ function initPracticeMode() {
 function startNewQuizQuestion() {
     clearQuizFeedback();
     showNextQuestionButton(false);
+    // Re-enable quiz options buttons if they were disabled by a previous question
+    const quizOptionsEl = document.getElementById('quiz-options');
+    if (quizOptionsEl) {
+        Array.from(quizOptionsEl.children).forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-blue-500', 'text-white');
+            btn.classList.add('bg-gray-200', 'hover:bg-blue-500', 'hover:text-white');
+        });
+    }
 
     currentQuizWordKey = selectWordForPractice();
 
@@ -114,7 +125,8 @@ function startNewQuizQuestion() {
     if (!options) {
          displayQuizError("Could not generate quiz options. Need at least 3 distinct words with definitions.");
          showQuizArea(false);
-         document.getElementById('start-practice-button').style.display = 'block';
+         const startButton = document.getElementById('start-practice-button');
+         if(startButton) startButton.style.display = 'block';
          return;
     }
     displayPracticeQuestionUI(currentQuizWordKey, options, handleAnswerChoice);
@@ -239,25 +251,6 @@ function handleAnswerChoice(chosenDefinitionText) {
     disableQuizOptions(); // Prevent changing answer after submission
 }
 
-function initWordListView() {
-    const toggleButton = document.getElementById('toggle-word-list-button');
-    const wordListContainer = document.getElementById('word-list-table-container');
-
-    if (toggleButton && wordListContainer) {
-        toggleButton.addEventListener('click', () => {
-            const isHidden = wordListContainer.style.display === 'none';
-            if (isHidden) {
-                renderWordList();
-                wordListContainer.style.display = 'block';
-                toggleButton.textContent = 'Hide Vocabulary';
-            } else {
-                wordListContainer.style.display = 'none';
-                toggleButton.textContent = 'Show Vocabulary';
-            }
-        });
-    }
-}
-
 function getAllWordsForDisplay() {
     return Object.entries(localWordsDB).map(([word, data]) => ({
         englishWord: word,
@@ -266,10 +259,7 @@ function getAllWordsForDisplay() {
         viewCount: data.viewCount,
         correctAnswers: data.practiceStats.correct,
         incorrectAnswers: data.practiceStats.incorrect,
-        practiceWeight: data.practiceStats.weight,
-        // Add a timestamp or recency score if you want to sort by recency
-        // For now, will be sorted alphabetically or by insertion order (depending on JS engine for Object.entries)
-        // To sort by recency, you'd need to store a timestamp when words are added/updated.
+        practiceWeight: data.practiceStats.weight
     })).sort((a, b) => a.englishWord.localeCompare(b.englishWord)); // Sort alphabetically for now
 }
 

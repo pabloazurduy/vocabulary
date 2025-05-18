@@ -3,27 +3,34 @@
 function updateSearchResultsUI(word, definition, translation) {
     const resultsDiv = document.getElementById('search-results');
     if (resultsDiv) {
-        // Sanitize inputs before inserting into HTML (basic example)
         const safeWord = word.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeDefinition = definition.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeTranslation = translation.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
         resultsDiv.innerHTML = `
-            <h3>${safeWord}</h3>
-            <p><strong>Definition:</strong> ${safeDefinition}</p>
-            <p><strong>Traducción (Español):</strong> ${safeTranslation}</p>
+            <h3 class="text-xl font-semibold text-app-accent mb-2">${safeWord}</h3>
+            <p class="mb-1"><strong class="font-medium text-app-text-primary">Definition:</strong> ${safeDefinition}</p>
+            <p><strong class="font-medium text-app-text-primary">Traducción (Español):</strong> ${safeTranslation}</p>
         `;
-        resultsDiv.style.color = 'black'; // Reset color in case of previous error
     }
 }
 
-function displayErrorUI(message) {
-    const resultsDiv = document.getElementById('search-results');
-    if (resultsDiv) {
-        const safeMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        resultsDiv.innerHTML = `<p style="color: red;">Error: ${safeMessage}</p>`;
+function displayErrorUI(message, area = 'search') {
+    let errorDisplayElement;
+    if (area === 'search') {
+        errorDisplayElement = document.getElementById('search-results');
+    } else if (area === 'quiz') {
+        errorDisplayElement = document.getElementById('quiz-feedback');
+    } else if (area === 'list') {
+        console.error("Error in word list: ", message);
+        alert("Error displaying word list: " + message.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+        return;
     }
-    // Or use a dedicated error display element
+
+    if (errorDisplayElement) {
+        const safeMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        errorDisplayElement.innerHTML = `<p class="text-app-red font-medium p-3 bg-red-900 bg-opacity-30 rounded-md">Error: ${safeMessage}</p>`;
+    }
 }
 
 // --- Practice Mode UI Functions ---
@@ -45,10 +52,17 @@ function displayPracticeQuestionUI(word, options, answerCallback) {
         quizOptionsEl.innerHTML = ''; // Clear previous options
         options.forEach(optionText => {
             const button = document.createElement('button');
-            button.textContent = optionText.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // Basic sanitization
-            button.className = 'quiz-option-button'; // For styling
+            button.textContent = optionText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            button.className = 'quiz-option-button block w-full text-left p-3 mb-2 bg-app-surface hover:bg-app-accent hover:text-white rounded-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-app-accent text-app-text-primary';
             button.addEventListener('click', () => {
-                answerCallback(optionText); // Pass the chosen definition text
+                Array.from(quizOptionsEl.children).forEach(btn => {
+                    btn.classList.remove('bg-app-accent', 'text-white');
+                    btn.classList.add('bg-app-surface', 'text-app-text-primary');
+                    btn.disabled = true;
+                });
+                button.classList.remove('bg-app-surface', 'text-app-text-primary');
+                button.classList.add('bg-app-accent', 'text-white');
+                answerCallback(optionText);
             });
             quizOptionsEl.appendChild(button);
         });
@@ -60,9 +74,9 @@ function displayQuizFeedback(isCorrect, correctAnswerText) {
     if (feedbackEl) {
         const safeCorrectAnswer = correctAnswerText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         if (isCorrect) {
-            feedbackEl.innerHTML = '<p style="color: green;">Correct!</p>';
+            feedbackEl.innerHTML = '<p class="text-app-green font-semibold p-3 bg-green-900 bg-opacity-30 rounded-md">Correct!</p>';
         } else {
-            feedbackEl.innerHTML = `<p style="color: red;">Incorrect. The correct definition was: "${safeCorrectAnswer}"</p>`;
+            feedbackEl.innerHTML = `<p class="text-app-red font-semibold p-3 bg-red-900 bg-opacity-30 rounded-md">Incorrect. The correct definition was: "${safeCorrectAnswer}"</p>`;
         }
     }
 }
@@ -85,24 +99,23 @@ function disableQuizOptions() {
         const buttons = quizOptionsEl.getElementsByTagName('button');
         for (let button of buttons) {
             button.disabled = true;
+            button.classList.add('opacity-75', 'cursor-not-allowed');
         }
     }
 }
 
 function displayQuizError(message) {
-    const feedbackEl = document.getElementById('quiz-feedback'); // Reuse feedback area for errors
+    const feedbackEl = document.getElementById('quiz-feedback');
     const quizArea = document.getElementById('quiz-area');
 
     if (feedbackEl) {
-        feedbackEl.innerHTML = `<p style="color: orange;">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+        feedbackEl.innerHTML = `<p class="text-orange-500 font-semibold p-3 bg-orange-900 bg-opacity-30 rounded-md">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
     }
     if (quizArea && quizArea.style.display !== 'none') {
-      // If quiz area is visible, maybe just show error and not hide it immediately
-      // but ensure options are not clickable if it's a fatal error for current question
     } else if (quizArea) {
-      // If quiz area is hidden, this error is likely before starting or for general issues
-      showQuizArea(false); // Ensure it's hidden if error prevents start
-      document.getElementById('start-practice-button').style.display = 'block';
+        showQuizArea(false);
+        const startButton = document.getElementById('start-practice-button');
+        if (startButton) startButton.style.display = 'block';
     }
 }
 
@@ -110,24 +123,96 @@ function displayQuizError(message) {
 
 function displayWordListUI(words) {
     const tbody = document.getElementById('word-list-tbody');
-    if (!tbody) return;
+    const container = document.getElementById('word-list-table-container');
+    if (!tbody || !container) return;
 
     tbody.innerHTML = ''; // Clear previous list
 
     if (words.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">Your vocabulary is empty. Start by searching for words!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-app-text-secondary">Your vocabulary is empty. Start by searching for words!</td></tr>';
         return;
     }
 
     words.forEach(wordData => {
         const row = tbody.insertRow();
-        
-        // Basic sanitization for each cell
-        Object.values(wordData).forEach(text => {
+        row.className = 'hover:bg-gray-800 transition duration-150 ease-in-out';
+
+        const cellsData = [
+            wordData.word || wordData.englishWord,
+            wordData.definition,
+            wordData.translation,
+            wordData.viewCount || wordData.views || 0,
+            wordData.correctAnswers || 0,
+            wordData.incorrectAnswers || 0,
+            wordData.practiceWeight || 0
+        ];
+
+        cellsData.forEach(text => {
             const cell = row.insertCell();
-            // Ensure text is a string before trying to replace, numbers are fine as is.
-            const cellText = (typeof text === 'string') ? text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : text;
+            cell.className = 'py-3 px-4 text-sm text-app-text-primary';
+            const cellText = (typeof text === 'string') ? text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : (text !== undefined && text !== null ? text : '-');
             cell.textContent = cellText;
         });
     });
+}
+
+// --- Tab Navigation ---
+function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active-tab', 'text-app-accent', 'border-app-accent');
+                btn.classList.add('text-app-text-secondary', 'hover:text-app-accent');
+            });
+            tabContents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            button.classList.add('active-tab', 'text-app-accent', 'border-app-accent');
+            button.classList.remove('text-app-text-secondary', 'hover:text-app-accent');
+            const targetTab = button.getAttribute('data-tab');
+            const activeContent = document.getElementById(targetTab);
+            if (activeContent) {
+                activeContent.style.display = 'block';
+            }
+
+            if (targetTab === 'word-list-content') {
+                if (typeof renderWordList === 'function') {
+                    renderWordList(); // Call renderWordList from app.js
+                }
+            }
+        });
+    });
+
+    let initialTabActivated = false;
+    const initialActiveButton = document.querySelector('.tab-button.active-tab');
+    if (initialActiveButton) {
+        const initialTabContentId = initialActiveButton.getAttribute('data-tab');
+        const initialActiveContent = document.getElementById(initialTabContentId);
+        if (initialActiveContent) {
+            initialActiveContent.style.display = 'block';
+            if (initialTabContentId === 'word-list-content') {
+                if (typeof renderWordList === 'function') {
+                    renderWordList(); // Call renderWordList from app.js
+                    initialTabActivated = true;
+                }
+            }
+        }
+    }
+    
+    // If no tab was explicitly set as active in HTML, or if the active one wasn't the word list,
+    // and the first tab is the word list, trigger its loading.
+    if (!initialTabActivated && tabButtons.length > 0) {
+        if (!document.querySelector('.tab-button.active-tab')) {
+             tabButtons[0].click(); 
+        } else if (initialActiveButton && initialActiveButton.getAttribute('data-tab') !== 'word-list-content' && tabButtons[0].getAttribute('data-tab') === 'word-list-content' && initialActiveButton !== tabButtons[0]){
+        } else if (initialActiveButton && initialActiveButton.getAttribute('data-tab') === 'word-list-content' && !initialTabActivated) {
+             if (typeof renderWordList === 'function') {
+                renderWordList();
+            }
+        }
+    }
 }
