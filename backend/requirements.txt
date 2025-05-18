@@ -1,6 +1,8 @@
-# Python dependencies for the backend
-# Add packages like Flask, requests, etc., as needed.
-# Example:
-# Flask>=2.0
-# requests>=2.20
-Flask>=2.0
+# backend/requirements.txt
+Flask
+google-cloud-firestore
+gunicorn
+Flask-CORS
+requests # For DictionaryAPI - Will be removed if not used elsewhere, but keeping for now
+google-generativeai # For Gemini API
+# Add any other dependencies

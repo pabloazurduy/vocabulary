@@ -35,57 +35,27 @@
 <body class="bg-app-bg text-app-text-primary font-sans">
     <header class="bg-app-surface text-app-text-primary p-6 shadow-md">
         <h1 class="text-3xl font-bold text-center text-app-accent">Vocabulary Learner</h1>
+        <nav class="flex justify-center space-x-4 mt-4">
+            <button id="view-search" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Search</button>
+            <button id="view-list" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Word List</button>
+            <button id="view-practice" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Practice</button>
+        </nav>
     </header>
     <main class="container mx-auto p-4 mt-6">
-        <!-- Tab Navigation -->
-        <div class="mb-8 border-b border-app-border">
-            <nav class="flex space-x-1 sm:space-x-4" aria-label="Tabs">
-                <button id="tab-search" class="tab-button active-tab text-app-accent py-3 sm:py-4 px-3 sm:px-6 block hover:text-app-accent-hover focus:outline-none border-b-2 font-medium border-app-accent" data-tab="word-search-content">Word Search</button>
-                <button id="tab-practice" class="tab-button text-app-text-secondary py-3 sm:py-4 px-3 sm:px-6 block hover:text-app-accent focus:outline-none" data-tab="practice-mode-content">Practice Mode</button>
-                <button id="tab-list" class="tab-button text-app-text-secondary py-3 sm:py-4 px-3 sm:px-6 block hover:text-app-accent focus:outline-none" data-tab="word-list-content">My Vocabulary</button>
-            </nav>
-        </div>
-
-        <!-- Tab Content -->
-        <!-- Word Search Section -->
-        <section id="word-search-content" class="tab-content p-6 bg-app-surface rounded-lg shadow-lg">
-            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Word Search</h2>
+        <section id="search-view" class="view">
+            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Search Word</h2>
             <div class="flex flex-col sm:flex-row gap-4 mb-6">
                 <input type="text" id="search-input" placeholder="Enter an English word" class="flex-grow p-3 bg-app-surface-lighter border border-app-border rounded-lg text-app-text-primary focus:ring-2 focus:ring-app-accent focus:border-transparent placeholder-app-text-secondary">
                 <button id="search-button" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out">Search</button>
             </div>
-            <div id="search-results" class="mt-6 p-4 bg-app-surface-lighter rounded-lg min-h-[100px]">
-                <!-- Definition and translation will appear here -->
+            <div id="results" class="mt-6 p-4 bg-app-surface-lighter rounded-lg min-h-[100px]">
+                <!-- Search results will be displayed here -->
             </div>
         </section>
 
-        <!-- Practice Mode Section -->
-        <section id="practice-mode-content" class="tab-content p-6 bg-app-surface rounded-lg shadow-lg" style="display: none;">
-            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Practice Mode</h2>
-            <div class="text-center">
-                <button id="start-practice-button" class="bg-app-green hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-150 ease-in-out">Start Practice Quiz</button>
-            </div>
-            <div id="quiz-area" style="display: none;" class="mt-6">
-                <h3 id="quiz-word-display" class="text-xl font-medium mb-4 text-center">Word: <span id="quiz-word" class="font-bold text-app-accent"></span></h3>
-                <p class="text-center text-app-text-secondary mb-4">Choose the correct definition:</p>
-                <div id="quiz-options" class="space-y-4 mb-4">
-                    <!-- Definition buttons will be injected here by ui.js -->
-                </div>
-                <div id="quiz-feedback" class="mt-4 p-3 text-center rounded-lg min-h-[50px]">
-                    <!-- Feedback will be shown here -->
-                </div>
-                <div class="text-center mt-6">
-                    <button id="next-question-button" style="display: none;" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out">Next Question</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Word List View Section -->
-        <section id="word-list-content" class="tab-content p-6 bg-app-surface rounded-lg shadow-lg" style="display: none;">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-app-text-primary">My Vocabulary</h2>
-            </div>
-            <div id="word-list-table-container" class="mt-4 overflow-x-auto">
+        <section id="list-view" class="view" style="display: none;">
+            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">My Word List</h2>
+            <div id="word-list" class="mt-4 overflow-x-auto">
                 <table class="min-w-full bg-app-surface">
                     <thead class="bg-app-surface-lighter">
                         <tr>
@@ -104,12 +74,32 @@
                 </table>
             </div>
         </section>
+
+        <section id="practice-view" class="view" style="display: none;">
+            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Practice Mode</h2>
+            <div id="practice-mode" class="text-center">
+                <button id="start-practice-button" class="bg-app-green hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-150 ease-in-out">Start Practice Quiz</button>
+            </div>
+            <div id="quiz-area" style="display: none;" class="mt-6">
+                <h3 id="quiz-word-display" class="text-xl font-medium mb-4 text-center">Word: <span id="quiz-word" class="font-bold text-app-accent"></span></h3>
+                <p class="text-center text-app-text-secondary mb-4">Choose the correct definition:</p>
+                <div id="quiz-options" class="space-y-4 mb-4">
+                    <!-- Definition buttons will be injected here by ui.js -->
+                </div>
+                <div id="quiz-feedback" class="mt-4 p-3 text-center rounded-lg min-h-[50px]">
+                    <!-- Feedback will be shown here -->
+                </div>
+                <div class="text-center mt-6">
+                    <button id="next-question-button" style="display: none;" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out">Next Question</button>
+                </div>
+            </div>
+        </section>
     </main>
     <footer class="bg-app-surface text-app-text-secondary p-6 mt-12 text-center border-t border-app-border">
         <p>&copy; 2025 Vocabulary App. Learning one word at a time.</p>
     </footer>
     <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
+    <!-- <script src="js/ui.js"></script> -->
 </body>
 </html>

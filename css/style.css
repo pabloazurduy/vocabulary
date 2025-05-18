@@ -1,114 +1,146 @@
-/* Basic styles for Vocabulary Learner App */
+/* Basic styling for the Vocabulary Learner App */
 body {
-    font-family: sans-serif;
-    line-height: 1.6;
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
     color: #333;
+    line-height: 1.6;
 }
 
 header {
-    background: #333;
+    background-color: #333;
     color: #fff;
     padding: 1rem 0;
     text-align: center;
 }
 
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+nav button {
+    background-color: #555;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+nav button:hover {
+    background-color: #777;
+}
+
 main {
     padding: 1rem;
     max-width: 800px;
-    margin: auto;
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-section {
-    background: #fff;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+.view {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    margin-top: 1rem;
     border-radius: 5px;
 }
 
-input[type="text"], button {
+input[type="text"] {
     padding: 0.5rem;
     margin-right: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 200px; /* Ensure input is not too small */
 }
 
 button {
+    padding: 0.5rem 1rem;
+    background-color: #337ab7; /* A nice blue */
+    color: white;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
 }
 
-footer {
-    text-align: center;
-    padding: 1rem;
-    background: #333;
-    color: #fff;
-    position: relative;
-    bottom: 0;
-    width: 100%;
+button:hover {
+    background-color: #286090;
 }
 
-/* Practice Mode Styles */
-#quiz-area {
+.results-container,
+.word-list-container,
+.practice-container {
     margin-top: 1rem;
     padding: 1rem;
-    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
     border-radius: 4px;
 }
 
-#quiz-options button {
-    display: block;
-    width: 100%;
-    margin-bottom: 0.5rem;
-    padding: 0.75rem;
-    text-align: left;
-    background-color: #e7e7e7;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#quiz-options button:hover {
-    background-color: #d7d7d7;
-}
-
-#quiz-options button:disabled {
-    background-color: #f0f0f0;
-    color: #aaa;
-    cursor: not-allowed;
-}
-
-#quiz-feedback p {
-    margin-top: 1rem;
-    font-weight: bold;
-}
-
-#next-question-button {
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-}
-
-/* Word List Table Styles */
-#word-list-table-container table {
+/* Word List Table */
+table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
 }
 
-#word-list-table-container th, 
-#word-list-table-container td {
+table th, table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
 
-#word-list-table-container th {
+table th {
     background-color: #f2f2f2;
+}
+
+/* Practice Mode */
+.options button {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    background-color: #e7e7e7;
     color: #333;
 }
 
-#word-list-table-container tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+.options button:hover {
+    background-color: #d7d7d7;
 }
 
-#word-list-table-container tbody tr:hover {
-    background-color: #f1f1f1;
+.feedback-correct {
+    color: green;
+    font-weight: bold;
+}
+
+.feedback-incorrect {
+    color: red;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-style: italic;
+}
+
+#next-question-button {
+    background-color: #5cb85c; /* Green for next */
+    margin-top: 1rem;
+}
+
+#next-question-button:hover {
+    background-color: #4cae4c;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #777;
+    border-top: 1px solid #eee;
 }
