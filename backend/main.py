@@ -41,7 +41,6 @@ def get_word_data_with_gemini(word):
             "definition": "Definition service not available (Gemini not initialized).",
             "translation": "Translation service not available (Gemini not initialized)."
         }
-        return None
     try:
         # Create a structured prompt that explicitly requests JSON format
         prompt = f"""

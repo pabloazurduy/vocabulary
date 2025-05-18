@@ -14,4 +14,5 @@ ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
 
 # Service must listen on $PORT environment variable
-CMD ["python", "backend/main.py"]
+# Use gunicorn for production deployment
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 backend.main:app
