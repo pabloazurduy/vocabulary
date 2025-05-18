@@ -1,0 +1,33 @@
+name: Deploy to Cloud Run from Source
+
+on:
+  push:
+    branches:
+      - main  # Change this if your default branch is named differently
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Google Auth
+      id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Deploy to Cloud Run
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        service: vocabulary-app
+        region: us-central1
+        source: ./
+        env_vars: |
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+      
+    - name: Show Output URL
+      run: echo ${{ steps.deploy.outputs.url }}

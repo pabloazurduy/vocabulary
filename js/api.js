@@ -1,5 +1,5 @@
-// Base URL for your backend API - Replace with your actual Cloud Run URL when deployed
-const BASE_URL = 'http://localhost:8080/api'; // Example for local Flask dev server
+// Base URL for your backend API - Using relative path for seamless deployment
+const BASE_URL = '/api'; // Changed from absolute URL to relative path
 
 async function searchWord(word) {
     try {

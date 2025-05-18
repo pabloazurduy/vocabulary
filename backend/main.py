@@ -1,13 +1,15 @@
 import os
 import requests  # For DictionaryAPI (potentially remove if fully replaced)
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google.cloud import firestore
 import google.generativeai as genai  # Added for Gemini
 import random
 
 # Initialize Flask App
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_url_path='', 
+            static_folder='../') # Serve files from parent directory
 CORS(app)  # Enable CORS for all routes
 
 # Initialize Firestore Client
@@ -34,13 +36,11 @@ except Exception as e:
 # --- External API Functions (Now using Gemini) ---
 def get_word_data_with_gemini(word):
     """Fetches both definition and translation from Gemini API in a single call."""
-    if not word or not gemini_model:
-        if not gemini_model:
-            print("Gemini model not initialized.")
-            return {
-                "definition": "Definition service not available (Gemini not initialized).",
-                "translation": "Translation service not available (Gemini not initialized)."
-            }
+    if not gemini_model:
+        return {
+            "definition": "Definition service not available (Gemini not initialized).",
+            "translation": "Translation service not available (Gemini not initialized)."
+        }
         return None
     try:
         # Create a structured prompt that explicitly requests JSON format
@@ -152,14 +152,22 @@ def translate_to_spanish_with_gemini(text):
 
 # --- API Endpoints ---
 
-@app.route("/", methods=['GET'])
-@app.route("/index.html/<word>", methods=['GET'])
-def serve_index(word=None):
-    """Serve the main index.html page, optionally with a word parameter for direct lookup."""
-    # This route will serve the index.html file and pass the word parameter
-    # The frontend JS will handle the actual lookup based on the URL parameter
-    return "", 200 # This is a placeholder as we'll handle everything in the frontend
-    
+# Serve static files and handle frontend routes
+@app.route('/', defaults={'path': 'index.html'})
+@app.route('/<path:path>')
+def serve_static(path):
+    """Serve static files or return index.html for frontend route handling"""
+    # Handle the direct word lookup route pattern
+    if path.startswith('index.html/'):
+        return send_from_directory('../', 'index.html')
+        
+    # Try to serve the requested file
+    try:
+        return send_from_directory('../', path)
+    except:
+        # If the file doesn't exist, return index.html (for SPA routing)
+        return send_from_directory('../', 'index.html')
+
 @app.route("/api/search", methods=['POST'])
 def search_word():
     if not db:
