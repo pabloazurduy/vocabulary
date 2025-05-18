@@ -1,0 +1,6 @@
+# Python dependencies for the backend
+# Add packages like Flask, requests, etc., as needed.
+# Example:
+# Flask>=2.0
+# requests>=2.20
+Flask>=2.0

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Learner</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Vocabulary Learner</h1>
+    </header>
+    <main>
+        <!-- Word Search Section -->
+        <section id="word-search">
+            <h2>Word Search</h2>
+            <input type="text" id="search-input" placeholder="Enter an English word">
+            <button id="search-button">Search</button>
+            <div id="search-results">
+                <!-- Definition and translation will appear here -->
+            </div>
+        </section>
+
+        <!-- Practice Mode Section -->
+        <section id="practice-mode">
+            <h2>Practice Mode</h2>
+            <button id="start-practice-button">Start Practice Quiz</button>
+            <div id="quiz-area" style="display: none;">
+                <h3 id="quiz-word-display">Word: <span id="quiz-word"></span></h3>
+                <p>Choose the correct definition:</p>
+                <div id="quiz-options">
+                    <!-- Definition buttons will be injected here by ui.js -->
+                </div>
+                <div id="quiz-feedback">
+                    <!-- Feedback will be shown here -->
+                </div>
+                <button id="next-question-button" style="display: none;">Next Question</button>
+            </div>
+        </section>
+
+        <!-- Word List View Section -->
+        <section id="word-list-section">
+            <h2>My Vocabulary</h2>
+            <button id="toggle-word-list-button">Show Vocabulary</button>
+            <div id="word-list-table-container" style="display: none; margin-top: 1rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>English Word</th>
+                            <th>Definition</th>
+                            <th>Spanish Translation</th>
+                            <th>View Count</th>
+                            <th>Correct</th>
+                            <th>Incorrect</th>
+                            <th>Practice Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody id="word-list-tbody">
+                        <!-- Word rows will be injected here by ui.js -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>Vocabulary App</p>
+    </footer>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

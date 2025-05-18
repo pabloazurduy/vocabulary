@@ -1,0 +1,114 @@
+/* Basic styles for Vocabulary Learner App */
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+main {
+    padding: 1rem;
+    max-width: 800px;
+    margin: auto;
+}
+
+section {
+    background: #fff;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+}
+
+input[type="text"], button {
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+button {
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #333;
+    color: #fff;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Practice Mode Styles */
+#quiz-area {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#quiz-options button {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    text-align: left;
+    background-color: #e7e7e7;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#quiz-options button:hover {
+    background-color: #d7d7d7;
+}
+
+#quiz-options button:disabled {
+    background-color: #f0f0f0;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+#quiz-feedback p {
+    margin-top: 1rem;
+    font-weight: bold;
+}
+
+#next-question-button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Word List Table Styles */
+#word-list-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+#word-list-table-container th, 
+#word-list-table-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#word-list-table-container th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+#word-list-table-container tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#word-list-table-container tbody tr:hover {
+    background-color: #f1f1f1;
+}
