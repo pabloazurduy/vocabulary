@@ -1,27 +1,5 @@
 // Main application logic for Vocabulary Learner
 
-// Mock local database
-let localWordsDB = {
-    "hello": {
-        definition: "A greeting.",
-        translation: "Hola",
-        viewCount: 3,
-        practiceStats: { correct: 0, incorrect: 0, weight: 10 }
-    },
-    "world": {
-        definition: "The earth, together with all of its countries and peoples.",
-        translation: "Mundo",
-        viewCount: 2,
-        practiceStats: { correct: 0, incorrect: 0, weight: 10 }
-    },
-    "developer": {
-        definition: "A person that develops something, typically software.",
-        translation: "Desarrollador/a",
-        viewCount: 1,
-        practiceStats: { correct: 0, incorrect: 0, weight: 10 }
-    }
-};
-
 let currentQuizWordKey = null;
 
 const searchButton = document.getElementById('search-button');
@@ -38,96 +16,139 @@ const viewPracticeButton = document.getElementById('view-practice');
 let currentPracticeQuestion = null;
 
 // --- Event Listeners ---
-searchButton.addEventListener('click', async () => {
-    const word = searchInput.value.trim();
+document.getElementById('search-button').addEventListener('click', async () => {
+    const word = document.getElementById('search-input').value.trim();
     if (word) {
         try {
             const data = await searchWord(word);
             displaySearchResults(data);
         } catch (error) {
-            resultsDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            document.getElementById('results').innerHTML = `
+                <div class="text-app-red">
+                    Error: ${error.message}
+                </div>`;
         }
     }
 });
 
-viewSearchButton.addEventListener('click', () => showView('search-view'));
-viewListButton.addEventListener('click', async () => {
-    showView('list-view');
-    await loadAndDisplayWordList();
+document.getElementById('search-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('search-button').click();
+    }
 });
-viewPracticeButton.addEventListener('click', async () => {
+
+// Navigation event listeners
+document.getElementById('view-search').addEventListener('click', () => showView('search-view'));
+document.getElementById('view-list').addEventListener('click', async () => {
+    showView('list-view');
+    try {
+        const words = await getWordList();
+        displayWordList(words);
+    } catch (error) {
+        document.getElementById('word-list-tbody').innerHTML = `
+            <tr><td colspan="6" class="px-6 py-4 text-center text-app-red">
+                Error loading word list: ${error.message}
+            </td></tr>`;
+    }
+});
+document.getElementById('view-practice').addEventListener('click', () => {
     showView('practice-view');
-    await loadPracticeQuestion();
+    loadPracticeQuestion();
 });
 
 // --- UI Update Functions ---
 function showView(viewId) {
+    // Hide all views
     document.querySelectorAll('.view').forEach(view => {
-        view.style.display = 'none';
+        view.classList.add('hidden');
     });
-    document.getElementById(viewId).style.display = 'block';
-    // Clear previous results/content when switching views
-    if (viewId === 'search-view') {
-        resultsDiv.innerHTML = '';
-        searchInput.value = '';
-    }
-    // Add similar clearing for other views if needed
+    // Show requested view
+    document.getElementById(viewId).classList.remove('hidden');
+
+    // Update active state in navigation
+    document.querySelectorAll('nav button').forEach(btn => {
+        btn.classList.remove('bg-app-surface-lighter');
+    });
+    document.querySelector(`button[id="view-${viewId.split('-')[0]}"]`)
+        ?.classList.add('bg-app-surface-lighter');
 }
 
 function displaySearchResults(data) {
+    const resultsDiv = document.getElementById('results');
     if (!data) {
-        resultsDiv.innerHTML = '<p>No data found.</p>';
+        resultsDiv.innerHTML = '<p class="text-app-text-secondary">No data found.</p>';
         return;
     }
+
     resultsDiv.innerHTML = `
-        <h3>${data.english_word}</h3>
-        <p><strong>Definition:</strong> ${data.definition}</p>
-        <p><strong>Traducción:</strong> ${data.translation}</p>
-        <p><small>View Count: ${data.view_count}</small></p>
+        <div class="space-y-4">
+            <div class="flex items-start justify-between">
+                <h3 class="text-xl font-medium text-app-accent">${data.english_word}</h3>
+                <span class="text-sm text-app-text-secondary">Views: ${data.view_count || 0}</span>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <h4 class="text-sm uppercase text-app-text-secondary mb-1">Definition</h4>
+                    <p class="text-app-text-primary">${data.definition}</p>
+                </div>
+                <div>
+                    <h4 class="text-sm uppercase text-app-text-secondary mb-1">Spanish Translation</h4>
+                    <p class="text-app-text-primary">${data.translation}</p>
+                </div>
+            </div>
+        </div>
     `;
 }
 
-async function loadAndDisplayWordList() {
-    try {
-        const words = await getWordList();
-        wordListDiv.innerHTML = ''; // Clear previous list
-        if (!words || words.length === 0) {
-            wordListDiv.innerHTML = '<p>No words saved yet.</p>';
-            return;
-        }
+function displayWordList(words) {
+    const tbody = document.getElementById('word-list-tbody');
+    tbody.innerHTML = ''; // Clear existing content
 
-        const table = document.createElement('table');
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Word</th>
-                    <th>Definition</th>
-                    <th>Translation</th>
-                    <th>View Count</th>
-                    <th>Correct</th>
-                    <th>Incorrect</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        `;
-        const tbody = table.querySelector('tbody');
-        words.forEach(word => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${word.english_word}</td>
-                <td>${word.definition}</td>
-                <td>${word.translation}</td>
-                <td>${word.view_count || 0}</td>
-                <td>${word.practice_correct_count || 0}</td>
-                <td>${word.practice_incorrect_count || 0}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-        wordListDiv.appendChild(table);
-    } catch (error) {
-        wordListDiv.innerHTML = `<p class="error">Error loading word list: ${error.message}</p>`;
+    if (!words || words.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-app-text-secondary">
+                    No words saved yet.
+                </td>
+            </tr>`;
+        return;
     }
+
+    words.forEach(word => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-app-surface-lighter transition-colors';
+        tr.innerHTML = `
+            <td class="px-6 py-4">
+                <span class="font-medium text-app-accent">${word.english_word}</span>
+            </td>
+            <td class="px-6 py-4">
+                <p class="text-sm text-app-text-primary line-clamp-2">${word.definition}</p>
+            </td>
+            <td class="px-6 py-4">
+                <p class="text-sm text-app-text-primary">${word.translation}</p>
+            </td>
+            <td class="px-6 py-4">
+                <span class="text-app-text-secondary">${word.view_count || 0}</span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-app-green">${word.practice_correct_count || 0}</span>
+                    <span class="text-app-text-secondary">/</span>
+                    <span class="text-app-red">${word.practice_incorrect_count || 0}</span>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <button onclick="deleteWord('${word.english_word}')" 
+                    class="text-app-red hover:text-red-400 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 async function loadPracticeQuestion() {
@@ -144,24 +165,25 @@ async function loadPracticeQuestion() {
 }
 
 function displayPracticeQuestion(question) {
-    practiceModeDiv.innerHTML = ''; // Clear previous question
-    const questionP = document.createElement('p');
-    questionP.textContent = `What is the definition of: "${question.english_word}"?`;
-    practiceModeDiv.appendChild(questionP);
+    const wordDisplay = document.getElementById('word-display');
+    const optionsContainer = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
 
-    const optionsDiv = document.createElement('div');
-    optionsDiv.classList.add('options');
-    question.options.forEach(option => {
+    wordDisplay.innerHTML = `
+        <h3 class="text-xl font-medium mb-2">What is the definition of:</h3>
+        <p class="text-2xl font-bold text-app-accent mb-6">${question.english_word}</p>
+    `;
+
+    optionsContainer.innerHTML = '';
+    question.options.forEach((option, index) => {
         const button = document.createElement('button');
+        button.className = 'w-full text-left bg-app-surface-lighter hover:bg-opacity-80 p-4 rounded-lg transition-colors text-app-text-primary';
         button.textContent = option;
-        button.addEventListener('click', () => handlePracticeAnswer(option));
-        optionsDiv.appendChild(button);
+        button.onclick = () => handlePracticeAnswer(option);
+        optionsContainer.appendChild(button);
     });
-    practiceModeDiv.appendChild(optionsDiv);
 
-    const feedbackP = document.createElement('p');
-    feedbackP.id = 'practice-feedback';
-    practiceModeDiv.appendChild(feedbackP);
+    feedback.innerHTML = ''; // Clear any previous feedback
 }
 
 async function handlePracticeAnswer(selectedOption) {
@@ -171,35 +193,42 @@ async function handlePracticeAnswer(selectedOption) {
     const isCorrect = selectedOption === currentPracticeQuestion.correct_definition;
     try {
         await submitPracticeAnswer(currentPracticeQuestion.english_word, isCorrect);
-        if (isCorrect) {
-            feedbackP.textContent = 'Correct!';
-            feedbackP.className = 'feedback-correct';
-        } else {
-            feedbackP.textContent = `Incorrect. The correct answer was: ${currentPracticeQuestion.correct_definition}`;
-            feedbackP.className = 'feedback-incorrect';
-        }
-        // Disable option buttons after answer
-        practiceModeDiv.querySelectorAll('.options button').forEach(btn => btn.disabled = true);
-        
-        // Add a "Next Question" button
-        const nextButton = document.createElement('button');
-        nextButton.textContent = 'Next Question';
-        nextButton.id = 'next-question-button'; // Added id for styling/selection
-        nextButton.addEventListener('click', loadPracticeQuestion);
-        practiceModeDiv.appendChild(nextButton);
-
+        showPracticeFeedback(isCorrect, currentPracticeQuestion.correct_definition);
     } catch (error) {
         feedbackP.textContent = `Error submitting answer: ${error.message}`;
         feedbackP.className = 'error';
     }
 }
 
-// --- Initial Setup ---
-function init() {
-    // Show search view by default
-    showView('search-view');
-    // Any other initializations
+function showPracticeFeedback(isCorrect, correctDefinition) {
+    const feedback = document.getElementById('feedback');
+    const optionsContainer = document.getElementById('options-container');
+    
+    // Disable all option buttons
+    optionsContainer.querySelectorAll('button').forEach(btn => {
+        btn.disabled = true;
+        btn.className = btn.textContent === correctDefinition
+            ? 'w-full text-left bg-app-green bg-opacity-20 p-4 rounded-lg text-app-text-primary cursor-not-allowed'
+            : 'w-full text-left bg-app-surface-lighter opacity-50 p-4 rounded-lg text-app-text-primary cursor-not-allowed';
+    });
+
+    feedback.innerHTML = isCorrect
+        ? `<div class="text-app-green font-medium">Correct!</div>`
+        : `<div class="space-y-2">
+            <div class="text-app-red font-medium">Incorrect</div>
+            <div class="text-app-text-secondary">The correct definition was:</div>
+            <div class="text-app-text-primary">${correctDefinition}</div>
+        </div>`;
+
+    // Add "Next Question" button
+    const nextButton = document.createElement('button');
+    nextButton.className = 'mt-6 bg-app-accent hover:bg-app-accent-hover text-white px-6 py-2 rounded-lg transition-colors';
+    nextButton.textContent = 'Next Question';
+    nextButton.onclick = loadPracticeQuestion;
+    feedback.appendChild(nextButton);
 }
 
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', init);
+// --- Initial Setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    showView('search-view');
+});

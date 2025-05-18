@@ -3,6 +3,6 @@ Flask
 google-cloud-firestore
 gunicorn
 Flask-CORS
-requests # For DictionaryAPI - Will be removed if not used elsewhere, but keeping for now
-google-generativeai # For Gemini API
-# Add any other dependencies
+requests
+google-generativeai
+python-dotenv

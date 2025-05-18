@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,98 +8,134 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // or 'media' if you prefer OS-level settings
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Roboto', 'sans-serif'],
                     },
                     colors: {
-                        // Minimalistic dark theme palette
+                        // Dark theme palette inspired by the reference UI
                         'app-bg': '#121212',         // Main background
-                        'app-surface': '#1E1E1E',   // Cards, sections, inputs, table header
-                        'app-surface-lighter': '#2C2C2C', // Lighter surface for e.g. search results, quiz option buttons default state
-                        'app-text-primary': '#E0E0E0', // Primary text
-                        'app-text-secondary': '#B0B0B0',// Secondary text, subtle borders
-                        'app-accent': '#5D9CEC',       // A calm, Material Design-like blue
-                        'app-accent-hover': '#4A89CC', // Darker accent for hover
-                        'app-green': '#66BB6A',       // Success
-                        'app-red': '#EF5350',         // Error
-                        'app-border': '#333333',      // Borders
+                        'app-surface': '#1E1E1E',    // Cards, sections
+                        'app-surface-lighter': '#2C2C2C', // Lighter sections
+                        'app-text-primary': '#E0E0E0',
+                        'app-text-secondary': '#B0B0B0',
+                        'app-accent': '#5D9CEC',     // Primary accent color
+                        'app-accent-hover': '#4A89CC',
+                        'app-green': '#66BB6A',      // Success color
+                        'app-red': '#EF5350',        // Error color
+                        'app-border': '#333333',
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-app-bg text-app-text-primary font-sans">
-    <header class="bg-app-surface text-app-text-primary p-6 shadow-md">
-        <h1 class="text-3xl font-bold text-center text-app-accent">Vocabulary Learner</h1>
-        <nav class="flex justify-center space-x-4 mt-4">
-            <button id="view-search" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Search</button>
-            <button id="view-list" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Word List</button>
-            <button id="view-practice" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-2 px-4 rounded-lg">Practice</button>
+<body class="bg-app-bg text-app-text-primary min-h-screen font-sans">
+    <!-- Left Sidebar Navigation -->
+    <div class="flex min-h-screen">
+        <nav class="w-64 bg-app-surface border-r border-app-border p-6">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-app-accent mb-2">Vocabulary</h1>
+                <p class="text-app-text-secondary text-sm">Learn and practice English words</p>
+            </div>
+            
+            <div class="space-y-2">
+                <button id="view-search" 
+                    class="w-full text-left px-4 py-2 rounded-lg hover:bg-app-surface-lighter transition-colors flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Search
+                </button>
+                <button id="view-list"
+                    class="w-full text-left px-4 py-2 rounded-lg hover:bg-app-surface-lighter transition-colors flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Word List
+                </button>
+                <button id="view-practice"
+                    class="w-full text-left px-4 py-2 rounded-lg hover:bg-app-surface-lighter transition-colors flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Practice
+                </button>
+            </div>
         </nav>
-    </header>
-    <main class="container mx-auto p-4 mt-6">
-        <section id="search-view" class="view">
-            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Search Word</h2>
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="search-input" placeholder="Enter an English word" class="flex-grow p-3 bg-app-surface-lighter border border-app-border rounded-lg text-app-text-primary focus:ring-2 focus:ring-app-accent focus:border-transparent placeholder-app-text-secondary">
-                <button id="search-button" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out">Search</button>
-            </div>
-            <div id="results" class="mt-6 p-4 bg-app-surface-lighter rounded-lg min-h-[100px]">
-                <!-- Search results will be displayed here -->
-            </div>
-        </section>
 
-        <section id="list-view" class="view" style="display: none;">
-            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">My Word List</h2>
-            <div id="word-list" class="mt-4 overflow-x-auto">
-                <table class="min-w-full bg-app-surface">
-                    <thead class="bg-app-surface-lighter">
-                        <tr>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">English Word</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Definition</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Spanish Translation</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">View Count</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Correct</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Incorrect</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Practice Weight</th>
-                        </tr>
-                    </thead>
-                    <tbody id="word-list-tbody" class="divide-y divide-app-border">
-                        <!-- Word rows will be injected here by ui.js -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <!-- Main Content Area -->
+        <main class="flex-1 p-8">
+            <!-- Search View -->
+            <section id="search-view" class="view">
+                <div class="max-w-3xl mx-auto">
+                    <h2 class="text-2xl font-semibold mb-6">Search Word</h2>
+                    <div class="bg-app-surface rounded-lg p-6 mb-6">
+                        <div class="flex gap-4">
+                            <input type="text" id="search-input" 
+                                class="flex-1 bg-app-surface-lighter border border-app-border rounded-lg px-4 py-2 text-app-text-primary placeholder-app-text-secondary focus:ring-2 focus:ring-app-accent focus:border-transparent outline-none"
+                                placeholder="Enter an English word">
+                            <button id="search-button" 
+                                class="bg-app-accent hover:bg-app-accent-hover text-white px-6 py-2 rounded-lg transition-colors">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    <div id="results" class="bg-app-surface rounded-lg p-6 min-h-[200px]"></div>
+                </div>
+            </section>
 
-        <section id="practice-view" class="view" style="display: none;">
-            <h2 class="text-2xl font-semibold mb-6 text-app-text-primary">Practice Mode</h2>
-            <div id="practice-mode" class="text-center">
-                <button id="start-practice-button" class="bg-app-green hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-150 ease-in-out">Start Practice Quiz</button>
-            </div>
-            <div id="quiz-area" style="display: none;" class="mt-6">
-                <h3 id="quiz-word-display" class="text-xl font-medium mb-4 text-center">Word: <span id="quiz-word" class="font-bold text-app-accent"></span></h3>
-                <p class="text-center text-app-text-secondary mb-4">Choose the correct definition:</p>
-                <div id="quiz-options" class="space-y-4 mb-4">
-                    <!-- Definition buttons will be injected here by ui.js -->
+            <!-- Word List View -->
+            <section id="list-view" class="view hidden">
+                <div class="max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-semibold mb-6">My Word List</h2>
+                    <div class="bg-app-surface rounded-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-app-surface-lighter">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Word</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Definition</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Translation</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Views</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Practice</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-app-text-secondary uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="word-list-tbody" class="divide-y divide-app-border">
+                                    <!-- Word entries will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div id="quiz-feedback" class="mt-4 p-3 text-center rounded-lg min-h-[50px]">
-                    <!-- Feedback will be shown here -->
+            </section>
+
+            <!-- Practice View -->
+            <section id="practice-view" class="view hidden">
+                <div class="max-w-3xl mx-auto">
+                    <h2 class="text-2xl font-semibold mb-6">Practice Mode</h2>
+                    <div id="practice-mode" class="bg-app-surface rounded-lg p-6">
+                        <div id="quiz-container" class="text-center">
+                            <div id="word-display" class="mb-8">
+                                <!-- Word and options will be inserted here -->
+                            </div>
+                            <div id="options-container" class="space-y-4">
+                                <!-- Answer options will be inserted here -->
+                            </div>
+                            <div id="feedback" class="mt-6 min-h-[50px]">
+                                <!-- Feedback will be shown here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-center mt-6">
-                    <button id="next-question-button" style="display: none;" class="bg-app-accent hover:bg-app-accent-hover text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out">Next Question</button>
-                </div>
-            </div>
-        </section>
-    </main>
-    <footer class="bg-app-surface text-app-text-secondary p-6 mt-12 text-center border-t border-app-border">
-        <p>&copy; 2025 Vocabulary App. Learning one word at a time.</p>
-    </footer>
+            </section>
+        </main>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
-    <!-- <script src="js/ui.js"></script> -->
 </body>
 </html>

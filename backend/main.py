@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google.cloud import firestore
 import google.generativeai as genai  # Added for Gemini
+import random
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -148,6 +149,24 @@ def get_words():
         print(f"Error in /api/words: {e}")
         return jsonify({"error": "An internal error occurred"}), 500
 
+@app.route("/api/words/<word>", methods=['DELETE'])
+def delete_word(word):
+    if not db:
+        return jsonify({"error": "Firestore not initialized"}), 500
+    try:
+        word = word.strip().lower()
+        word_ref = db.collection('words').document(word)
+        doc = word_ref.get()
+
+        if not doc.exists:  # Changed from doc.exists() to doc.exists
+            return jsonify({"error": "Word not found"}), 404
+
+        word_ref.delete()
+        return jsonify({"message": "Word deleted successfully"}), 200
+    except Exception as e:
+        print(f"Error in delete_word: {e}")
+        return jsonify({"error": "An internal error occurred"}), 500
+
 @app.route("/api/practice", methods=['GET'])
 def get_practice_word():
     if not db:
@@ -158,12 +177,34 @@ def get_practice_word():
         if not all_words_docs:
             return jsonify({"error": "No words available for practice"}), 404
 
-        import random
-        chosen_doc = random.choice(all_words_docs)
-        word_data = chosen_doc.to_dict()
+        # Create a list of (word_doc, weight) tuples for weighted selection
+        weighted_words = []
+        for doc in all_words_docs:
+            word_data = doc.to_dict()
+            # Higher weight means more likely to be selected
+            weight = word_data.get('practice_weight', 10)  # Default weight of 10
+            weighted_words.append((doc, weight))
 
+        # Perform weighted random selection
+        total_weight = sum(weight for _, weight in weighted_words)
+        if total_weight == 0:  # If all weights are 0, use equal weights
+            chosen_doc = random.choice(all_words_docs)
+        else:
+            r = random.uniform(0, total_weight)
+            current_weight = 0
+            chosen_doc = None
+            for doc, weight in weighted_words:
+                current_weight += weight
+                if r <= current_weight:
+                    chosen_doc = doc
+                    break
+            if not chosen_doc:  # Fallback in case of floating point issues
+                chosen_doc = weighted_words[-1][0]
+
+        word_data = chosen_doc.to_dict()
         correct_definition = word_data.get("definition")
         
+        # Rest of the function remains the same...
         if not isinstance(correct_definition, str) or correct_definition.startswith("Error") or correct_definition.startswith("Definition service") or correct_definition.startswith("Could not retrieve"):
             print(f"Skipping word for practice due to problematic stored definition: {word_data.get('english_word')}")
             if len(all_words_docs) > 1:
@@ -171,6 +212,7 @@ def get_practice_word():
             else:
                 return jsonify({"error": "No suitable words for practice after filtering"}), 404
 
+        # Generate distractor definitions...
         distractor_defs = []
         other_words_data = [doc.to_dict() for doc in all_words_docs if doc.id != chosen_doc.id]
         random.shuffle(other_words_data)

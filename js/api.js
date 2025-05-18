@@ -68,3 +68,21 @@ async function submitPracticeAnswer(word, is_correct) {
         throw error;
     }
 }
+
+async function deleteWord(word) {
+    try {
+        const response = await fetch(`${BASE_URL}/words/${encodeURIComponent(word)}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        // Refresh the word list after successful deletion
+        const words = await getWordList();
+        displayWordList(words);
+    } catch (error) {
+        console.error("Error deleting word:", error);
+        throw error;
+    }
+}
