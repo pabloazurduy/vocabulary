@@ -139,7 +139,7 @@ function displayWordList(words) {
     if (!words || words.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-app-text-secondary">
+                <td colspan="9" class="px-6 py-4 text-center text-app-text-secondary">
                     No words saved yet.
                 </td>
             </tr>`;
@@ -147,6 +147,10 @@ function displayWordList(words) {
     }
 
     words.forEach(word => {
+        // Format timestamps
+        const createdDate = word.created_at ? formatFirestoreTimestamp(word.created_at) : 'N/A';
+        const lastViewedDate = word.last_viewed_at ? formatFirestoreTimestamp(word.last_viewed_at) : 'N/A';
+        
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-app-surface-lighter transition-colors';
         tr.innerHTML = `
@@ -154,10 +158,10 @@ function displayWordList(words) {
                 <span class="font-medium text-app-accent">${word.english_word}</span>
             </td>
             <td class="px-6 py-4">
-                <p class="text-sm text-app-text-primary line-clamp-2">${word.definition}</p>
+                <p class="text-sm text-app-text-primary line-clamp-2 min-w-[150px]">${word.definition}</p>
             </td>
             <td class="px-6 py-4">
-                <p class="text-sm text-app-text-primary">${word.translation}</p>
+                <p class="text-sm text-app-text-primary min-w-[100px]">${word.translation}</p>
             </td>
             <td class="px-6 py-4">
                 <span class="text-app-text-secondary">${word.view_count || 0}</span>
@@ -168,6 +172,15 @@ function displayWordList(words) {
                     <span class="text-app-text-secondary">/</span>
                     <span class="text-app-red">${word.practice_incorrect_count || 0}</span>
                 </div>
+            </td>
+            <td class="px-6 py-4">
+                <span class="text-app-text-secondary">${word.practice_weight || 10}</span>
+            </td>
+            <td class="px-6 py-4">
+                <span class="text-app-text-secondary text-xs">${createdDate}</span>
+            </td>
+            <td class="px-6 py-4">
+                <span class="text-app-text-secondary text-xs">${lastViewedDate}</span>
             </td>
             <td class="px-6 py-4">
                 <button onclick="deleteWord('${word.english_word}')" 
@@ -181,6 +194,48 @@ function displayWordList(words) {
         `;
         tbody.appendChild(tr);
     });
+}
+
+// Helper function to format Firestore timestamps
+function formatFirestoreTimestamp(timestamp) {
+    if (!timestamp) return 'N/A';
+    
+    try {
+        // Handle different timestamp formats
+        let date;
+        
+        // Case 1: Native Firestore Timestamp object with toDate() method
+        if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+            date = timestamp.toDate();
+        }
+        // Case 2: JSON serialized Firestore timestamp from server (seconds + nanoseconds)
+        else if (timestamp.seconds !== undefined) {
+            date = new Date(timestamp.seconds * 1000);
+        }
+        // Case 3: JSON serialized with _seconds property (sometimes happens with Firebase REST API)
+        else if (timestamp._seconds !== undefined) {
+            date = new Date(timestamp._seconds * 1000);
+        }
+        // Case 4: Plain javascript timestamp (milliseconds since epoch)
+        else if (typeof timestamp === 'number') {
+            date = new Date(timestamp);
+        }
+        // Case 5: ISO string date format
+        else if (typeof timestamp === 'string') {
+            date = new Date(timestamp);
+        }
+        // If we couldn't determine the format, or date is invalid
+        if (!date || isNaN(date.getTime())) {
+            console.log('Invalid timestamp format:', timestamp);
+            return 'N/A';
+        }
+        
+        // Format the date - show only the date part, not the time
+        return date.toLocaleDateString();
+    } catch (error) {
+        console.error('Error formatting timestamp:', error, timestamp);
+        return 'N/A';
+    }
 }
 
 async function loadPracticeQuestion() {

@@ -171,7 +171,11 @@ def search_word():
 
         if doc.exists:  # Word already exists in the database
             word_data = doc.to_dict()
-            word_ref.update({"view_count": firestore.Increment(1)})
+            # Update view count and last_viewed_at timestamp
+            word_ref.update({
+                "view_count": firestore.Increment(1),
+                "last_viewed_at": firestore.SERVER_TIMESTAMP
+            })
             word_data['view_count'] = word_data.get('view_count', 0) + 1
             return jsonify(word_data), 200
         else:
@@ -205,7 +209,8 @@ def search_word():
                 "view_count": 1,
                 "practice_correct_count": 0,
                 "practice_incorrect_count": 0,
-                "created_at": firestore.SERVER_TIMESTAMP
+                "created_at": firestore.SERVER_TIMESTAMP,
+                "last_viewed_at": firestore.SERVER_TIMESTAMP
             }
             
             # Store in database
@@ -367,7 +372,7 @@ def submit_answer():
         word_ref = db.collection('words').document(english_word)
         doc = word_ref.get()
 
-        if not doc.exists():
+        if not doc.exists:  # Fixed: removed parentheses, using 'exists' as an attribute
             return jsonify({"error": "Word not found"}), 404
 
         current_data = doc.to_dict()
