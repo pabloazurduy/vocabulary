@@ -32,55 +32,123 @@ except Exception as e:
     gemini_model = None
 
 # --- External API Functions (Now using Gemini) ---
-def get_definition_with_gemini(word):
-    """Fetches definition from Gemini API."""
+def get_word_data_with_gemini(word):
+    """Fetches both definition and translation from Gemini API in a single call."""
     if not word or not gemini_model:
         if not gemini_model:
             print("Gemini model not initialized.")
-            return "Definition service not available (Gemini not initialized)."
+            return {
+                "definition": "Definition service not available (Gemini not initialized).",
+                "translation": "Translation service not available (Gemini not initialized)."
+            }
         return None
     try:
-        prompt = f"What is the definition of the English word '{word}'? Provide a concise definition suitable for a vocabulary learning app."
+        # Create a structured prompt that explicitly requests JSON format
+        prompt = f"""
+        Analyze the English word '{word}' and provide the following information in JSON format:
+        1. most_probable_definition: The most accurate and concise definition in English (REQUIRED)
+        2. most_probable_translation: The most accurate Spanish translation (REQUIRED)
+        3. other_definitions: List any other common definitions or senses of the word (OPTIONAL - can be an empty array if there are no other common definitions)
+        4. other_translations: List any other Spanish translations that might apply in different contexts (OPTIONAL - can be an empty array if there are no other common translations)
+        
+        CRITICALLY IMPORTANT: 
+        - Respond ONLY with valid JSON format
+        - Do not include any explanations before or after the JSON
+        - The only required fields are most_probable_definition and most_probable_translation
+        - If there are no alternative definitions or translations, use empty arrays for those fields
+        
+        Example format:
+        {{
+          "most_probable_definition": "your definition here", 
+          "most_probable_translation": "your translation here",
+          "other_definitions": [], 
+          "other_translations": []
+        }}
+        
+        If the word has multiple meanings, provide the most common definition as most_probable_definition and include others as other_definitions.
+        """
+        
         response = gemini_model.generate_content(prompt)
+        
         if response.parts:
-            definition = response.text
-            if "definition of" in definition.lower() or word.lower() in definition.lower() or "means" in definition.lower():
-                if "definition of" in definition and ":" in definition:
-                    definition = definition.split(":", 1)[1].strip()
-                return definition
-            else:
-                print(f"Gemini did not provide a clear definition for '{word}'. Response: {definition}")
-                return f"Could not retrieve a clear definition for '{word}' from the AI."
-        else:
-            print(f"Gemini API: No parts in response for definition of '{word}'. Full response: {response}")
-            return "No definition found (empty response from AI)."
+            result_text = response.text
+            # Try to extract JSON content if surrounded by markdown code blocks
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
+                
+            # Try to parse the JSON response
+            import json
+            try:
+                parsed_data = json.loads(result_text)
+                
+                # Validate that required fields exist
+                definition = parsed_data.get("most_probable_definition", "")
+                translation = parsed_data.get("most_probable_translation", "")
+                # Ensure these are arrays, even if empty
+                other_definitions = parsed_data.get("other_definitions", [])
+                if not isinstance(other_definitions, list):
+                    other_definitions = []
+                other_translations = parsed_data.get("other_translations", [])
+                if not isinstance(other_translations, list):
+                    other_translations = []
+                
+                # Do some basic validation
+                if not definition or not translation:
+                    print(f"Gemini response missing required fields for '{word}': {result_text}")
+                    return {
+                        "definition": f"Could not retrieve a clear definition for '{word}' from the AI.",
+                        "translation": f"Could not retrieve a clear translation for '{word}' from the AI.",
+                        "other_definitions": [],
+                        "other_translations": []
+                    }
+                
+                return {
+                    "definition": definition,
+                    "translation": translation,
+                    "other_definitions": other_definitions,
+                    "other_translations": other_translations
+                }
+                
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse Gemini response as JSON for '{word}': {e}. Response: {result_text}")
+                # Fall back to simple extraction if JSON parsing fails
+                lines = result_text.strip().split('\n')
+                if len(lines) >= 2:
+                    return {
+                        "definition": lines[0].strip(),
+                        "translation": lines[1].strip(),
+                        "other_definitions": [],
+                        "other_translations": []
+                    }
+        
+        print(f"Gemini API: Unexpected response format for '{word}'. Response: {response}")
+        return {
+            "definition": f"Could not process response for '{word}' from AI.",
+            "translation": f"Could not process translation for '{word}' from AI.",
+            "other_definitions": [],
+            "other_translations": []
+        }
     except Exception as e:
-        print(f"Gemini API: Error getting definition for '{word}': {e}")
-        return "Error during definition lookup with AI."
+        print(f"Gemini API: Error getting data for '{word}': {e}")
+        return {
+            "definition": f"Error during lookup with AI: {str(e)}",
+            "translation": f"Error during translation with AI: {str(e)}",
+            "other_definitions": [],
+            "other_translations": []
+        }
+
+# Legacy functions - can be removed as they're replaced by get_word_data_with_gemini
+def get_definition_with_gemini(word):
+    """Fetches definition from Gemini API. DEPRECATED: Use get_word_data_with_gemini instead."""
+    result = get_word_data_with_gemini(word)
+    return result.get("definition") if result else "Definition not available."
 
 def translate_to_spanish_with_gemini(text):
-    """Translates text to Spanish using Gemini API."""
-    if not text or not gemini_model:
-        if not gemini_model:
-            print("Gemini model not initialized.")
-            return "Translation service not available (Gemini not initialized)."
-        return None
-    try:
-        prompt = f"Translate the following English text to Spanish: '{text}'"
-        response = gemini_model.generate_content(prompt)
-        if response.parts:
-            translation = response.text
-            if text.lower() not in translation.lower() or len(translation) < len(text) * 0.5:
-                return translation
-            else:
-                print(f"Gemini might not have translated '{text}'. Response: {translation}")
-                return f"Could not reliably translate '{text}' with the AI."
-        else:
-            print(f"Gemini API: No parts in response for translation of '{text}'. Full response: {response}")
-            return "No translation found (empty response from AI)."
-    except Exception as e:
-        print(f"Gemini API: Error translating '{text}': {e}")
-        return "Error during translation with AI."
+    """Translates text to Spanish using Gemini API. DEPRECATED: Use get_word_data_with_gemini instead."""
+    result = get_word_data_with_gemini(text)
+    return result.get("translation") if result else "Translation not available."
 
 # --- API Endpoints ---
 
@@ -101,40 +169,66 @@ def search_word():
         word_ref = db.collection('words').document(english_word.lower())
         doc = word_ref.get()
 
-        if doc.exists:  # Changed from doc.exists() to doc.exists
+        if doc.exists:  # Word already exists in the database
             word_data = doc.to_dict()
             word_ref.update({"view_count": firestore.Increment(1)})
             word_data['view_count'] = word_data.get('view_count', 0) + 1
             return jsonify(word_data), 200
         else:
-            definition = get_definition_with_gemini(english_word)
-            translation = None
+            # Get word data using the combined function
+            gemini_data = get_word_data_with_gemini(english_word)
             
-            if definition and not definition.startswith("Error") and not definition.startswith("Definition service not available") and not definition.startswith("Could not retrieve") and not definition.startswith("No definition found"):
-                translation = translate_to_spanish_with_gemini(english_word)
-            else:
+            # Extract the primary definition and translation
+            definition = gemini_data.get("definition")
+            translation = gemini_data.get("translation")
+            other_definitions = gemini_data.get("other_definitions", [])
+            other_translations = gemini_data.get("other_translations", [])
+            
+            # Validate the data
+            if not definition or definition.startswith("Error") or definition.startswith("Definition service not available") or definition.startswith("Could not retrieve"):
+                definition = "Definition not found or AI service error."
                 translation = "Translation not available due to definition error."
-                if not definition:
-                    definition = "Definition not found or AI service error."
+                other_definitions = []
+                other_translations = []
             
             if not translation or translation.startswith("Error") or translation.startswith("Translation service") or translation.startswith("Could not reliably translate"):
-                if not translation:
-                    translation = "Translation failed or AI service error."
+                translation = "Translation failed or AI service error."
+                other_translations = []
 
+            # Create the new word entry with all available data
             new_word_data = {
                 "english_word": english_word,
                 "definition": definition,
                 "translation": translation,
+                "other_definitions": other_definitions,
+                "other_translations": other_translations,
                 "view_count": 1,
                 "practice_correct_count": 0,
                 "practice_incorrect_count": 0,
                 "created_at": firestore.SERVER_TIMESTAMP
             }
+            
+            # Store in database
             word_ref.set(new_word_data)
-            return jsonify(new_word_data), 201
+            
+            # Create a serializable copy of the data for the response
+            # Replace SERVER_TIMESTAMP with None or current time for JSON serialization
+            response_data = {
+                "english_word": english_word,
+                "definition": definition,
+                "translation": translation,
+                "other_definitions": other_definitions,
+                "other_translations": other_translations,
+                "view_count": 1,
+                "practice_correct_count": 0,
+                "practice_incorrect_count": 0,
+                # Don't include created_at in the response or use a serializable value
+            }
+            
+            return jsonify(response_data), 201
     except Exception as e:
         print(f"Error in /api/search: {e}")
-        return jsonify({"error": "An internal error occurred"}), 500
+        return jsonify({"error": f"An internal error occurred: {str(e)}"}), 500
 
 @app.route("/api/words", methods=['GET'])
 def get_words():

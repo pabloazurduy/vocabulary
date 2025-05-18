@@ -80,6 +80,36 @@ function displaySearchResults(data) {
         return;
     }
 
+    // Check if we have other definitions or translations to display
+    const hasOtherDefinitions = Array.isArray(data.other_definitions) && data.other_definitions.length > 0;
+    const hasOtherTranslations = Array.isArray(data.other_translations) && data.other_translations.length > 0;
+
+    // Build HTML for other definitions if they exist
+    let otherDefinitionsHTML = '';
+    if (hasOtherDefinitions) {
+        otherDefinitionsHTML = `
+            <div class="mt-4">
+                <h4 class="text-sm uppercase text-app-text-secondary mb-1">Other Definitions</h4>
+                <ul class="list-disc pl-5 text-app-text-primary">
+                    ${data.other_definitions.map(def => `<li>${def}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Build HTML for other translations if they exist
+    let otherTranslationsHTML = '';
+    if (hasOtherTranslations) {
+        otherTranslationsHTML = `
+            <div class="mt-4">
+                <h4 class="text-sm uppercase text-app-text-secondary mb-1">Other Translations</h4>
+                <ul class="list-disc pl-5 text-app-text-primary">
+                    ${data.other_translations.map(trans => `<li>${trans}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
     resultsDiv.innerHTML = `
         <div class="space-y-4">
             <div class="flex items-start justify-between">
@@ -95,6 +125,8 @@ function displaySearchResults(data) {
                     <h4 class="text-sm uppercase text-app-text-secondary mb-1">Spanish Translation</h4>
                     <p class="text-app-text-primary">${data.translation}</p>
                 </div>
+                ${otherDefinitionsHTML}
+                ${otherTranslationsHTML}
             </div>
         </div>
     `;
