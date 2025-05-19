@@ -1,11 +1,11 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/vocabulary-app:$COMMIT_SHA', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID', '.']
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/vocabulary-app:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID']
   
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,22 +15,20 @@ steps:
     - 'deploy'
     - 'vocabulary-app'
     - '--image'
-    - 'gcr.io/$PROJECT_ID/vocabulary-app:$COMMIT_SHA'
+    - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
     - '--region'
-    - 'us-central1'
+    - 'europe-west2'
     - '--platform'
     - 'managed'
     - '--allow-unauthenticated'
-    - '--set-env-vars'
-    - 'GEMINI_API_KEY=${_GEMINI_API_KEY}'
+    - '--cpu-boost'
+    - '--timeout=300s'         # Extended timeout for container startup
+    - '--min-instances=0'      # Start with 0 instances to reduce costs
+    - '--update-secrets=GEMINI_API_KEY=gemini-api-key:latest'  # Reference to Secret Manager
 
 # Store the image for reference
 images:
-  - 'gcr.io/$PROJECT_ID/vocabulary-app:$COMMIT_SHA'
-
-# Define substitution variables
-substitutions:
-  _GEMINI_API_KEY: '' # This will be set in the Cloud Build trigger UI
+  - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
 
 # Configure timeouts
 timeout: '1200s'
