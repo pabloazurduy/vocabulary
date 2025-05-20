@@ -137,29 +137,19 @@ def get_word_data_with_gemini(word):
             "other_definitions": [],
             "other_translations": []
         }
-
-# Legacy functions - can be removed as they're replaced by get_word_data_with_gemini
-def get_definition_with_gemini(word):
-    """Fetches definition from Gemini API. DEPRECATED: Use get_word_data_with_gemini instead."""
-    result = get_word_data_with_gemini(word)
-    return result.get("definition") if result else "Definition not available."
-
-def translate_to_spanish_with_gemini(text):
-    """Translates text to Spanish using Gemini API. DEPRECATED: Use get_word_data_with_gemini instead."""
-    result = get_word_data_with_gemini(text)
-    return result.get("translation") if result else "Translation not available."
-
 # --- API Endpoints ---
 
 # Serve static files and handle frontend routes
 @app.route('/', defaults={'path': 'index.html'})
+@app.route('/search', defaults={'path': None})
+def search_route(path=None):
+    """Handle search route with query parameters"""
+    # Serve index.html for /search route to handle client-side
+    return send_from_directory('../', 'index.html')
+
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve static files or return index.html for frontend route handling"""
-    # Handle the direct word lookup route pattern
-    if path.startswith('index.html/'):
-        return send_from_directory('../', 'index.html')
-        
     # Try to serve the requested file
     try:
         return send_from_directory('../', path)

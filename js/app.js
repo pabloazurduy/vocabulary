@@ -15,6 +15,26 @@ const viewPracticeButton = document.getElementById('view-practice');
 // --- App State ---
 let currentPracticeQuestion = null;
 
+// --- URL Parameter Handling ---
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+function getWordFromUrl() {
+  // Check if URL is in the format /search?word=something
+  const word = getQueryParam('word');
+  if (word) return word;
+  
+  // Check if URL is in the format /search?something
+  const query = window.location.search.substring(1); // Remove the '?'
+  if (query && !query.includes('=')) {
+    return query;
+  }
+  
+  return null;
+}
+
 // --- Event Listeners ---
 document.getElementById('search-button').addEventListener('click', async () => {
     const word = document.getElementById('search-input').value.trim();
@@ -151,8 +171,8 @@ function displayWordList(words) {
         const createdDate = word.created_at ? formatFirestoreTimestamp(word.created_at) : 'N/A';
         const lastViewedDate = word.last_viewed_at ? formatFirestoreTimestamp(word.last_viewed_at) : 'N/A';
         
-        // Create encoded URL for the word
-        const wordUrl = `index.html/${encodeURIComponent(word.english_word)}`;
+        // Create search URL for the word using the new format
+        const wordUrl = `/search?${encodeURIComponent(word.english_word)}`;
         
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-app-surface-lighter transition-colors';
@@ -320,16 +340,15 @@ function showPracticeFeedback(isCorrect, correctDefinition) {
 
 // --- Initial Setup ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Check URL for a specific word to look up
-    const pathSegments = window.location.pathname.split('/');
-    const word = pathSegments[pathSegments.length - 1];
+    // Check URL for a word query parameter using our enhanced function
+    const searchWord = getWordFromUrl();
     
-    // If URL contains a word after index.html/
-    if (pathSegments.length > 1 && pathSegments.includes('index.html') && word !== 'index.html') {
+    // If URL contains a word parameter
+    if (searchWord) {
         // Show the search view first
         showView('search-view');
         // Fill the search input with the word from the URL
-        document.getElementById('search-input').value = decodeURIComponent(word);
+        document.getElementById('search-input').value = searchWord;
         // Trigger search
         document.getElementById('search-button').click();
     } else {
