@@ -1,8 +1,10 @@
 import os
+import json
 import requests  # For DictionaryAPI (potentially remove if fully replaced)
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google.cloud import firestore
+from google.oauth2 import service_account
 from google import genai  # New Gemini SDK
 import random
 
@@ -12,9 +14,19 @@ app = Flask(__name__,
             static_folder='../') # Serve files from parent directory
 CORS(app)  # Enable CORS for all routes
 
-# Initialize Firestore Client
+# Initialize Firestore Client with Service Account
 try:
-    db = firestore.Client(database='vocabulary')
+    # Check for service account JSON in environment variable
+    service_account_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+    if service_account_json:
+        service_account_info = json.loads(service_account_json)
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        db = firestore.Client(database='vocabulary', credentials=credentials, project=credentials.project_id)
+        print("Firestore initialized with service account from environment variable")
+    else:
+        # Fall back to default credentials (for Cloud Run)
+        # db = firestore.Client(database='vocabulary')
+        print("Firestore initialized with default credentials")
 except Exception as e:
     print(f"Error initializing Firestore: {e}")
     db = None

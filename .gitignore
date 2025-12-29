@@ -2,6 +2,7 @@
 .secret
 *.secret
 
+
 # Python
 __pycache__/
 *.py[cod]
