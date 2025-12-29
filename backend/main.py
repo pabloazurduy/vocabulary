@@ -3,7 +3,7 @@ import requests  # For DictionaryAPI (potentially remove if fully replaced)
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google.cloud import firestore
-import google.generativeai as genai  # Added for Gemini
+from google import genai  # New Gemini SDK
 import random
 
 # Initialize Flask App
@@ -24,19 +24,21 @@ try:
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     if not gemini_api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set.")
-    genai.configure(api_key=gemini_api_key)
-    gemini_model = genai.GenerativeModel('gemma-3-12b-it')  # Changed to gemini-pro
+    gemini_client = genai.Client(api_key=gemini_api_key)
+    gemini_model = 'gemini-2.0-flash-lite'  # Model name for the new SDK
 except ValueError as ve:
     print(f"Configuration error for Gemini: {ve}")
+    gemini_client = None
     gemini_model = None
 except Exception as e:
     print(f"Error initializing Google Gemini client: {e}")
+    gemini_client = None
     gemini_model = None
 
 # --- External API Functions (Now using Gemini) ---
 def get_word_data_with_gemini(word):
     """Fetches both definition and translation from Gemini API in a single call."""
-    if not gemini_model:
+    if not gemini_client or not gemini_model:
         return {
             "definition": "Definition service not available (Gemini not initialized).",
             "translation": "Translation service not available (Gemini not initialized)."
@@ -67,9 +69,12 @@ def get_word_data_with_gemini(word):
         If the word has multiple meanings, provide the most common definition as most_probable_definition and include others as other_definitions.
         """
         
-        response = gemini_model.generate_content(prompt)
+        response = gemini_client.models.generate_content(
+            model=gemini_model,
+            contents=prompt
+        )
         
-        if response.parts:
+        if response.candidates and response.candidates[0].content.parts:
             result_text = response.text
             # Try to extract JSON content if surrounded by markdown code blocks
             if "```json" in result_text:
@@ -161,7 +166,7 @@ def serve_static(path):
 def search_word():
     if not db:
         return jsonify({"error": "Firestore not initialized"}), 500
-    if not gemini_model:
+    if not gemini_client or not gemini_model:
         return jsonify({"error": "AI service (Gemini) not initialized"}), 500
         
     try:
@@ -334,13 +339,16 @@ def get_practice_word():
                     break
         
         while len(distractor_defs) < 2:
-            if gemini_model:
+            if gemini_client and gemini_model:
                 try:
                     prompt = f"Generate one plausible but incorrect dictionary definition for the English word '{word_data.get('english_word')}' that could be used as a distractor in a multiple-choice quiz. The correct definition is approximately: '{correct_definition[:100]}...'. Do not include the word itself in the distractor. Make it concise."
                     if distractor_defs:
                         prompt += f" Ensure it is different from: {'; '.join(distractor_defs)}."
-                    gemini_response = gemini_model.generate_content(prompt)
-                    if gemini_response.parts and gemini_response.text:
+                    gemini_response = gemini_client.models.generate_content(
+                        model=gemini_model,
+                        contents=prompt
+                    )
+                    if gemini_response.candidates and gemini_response.candidates[0].content.parts:
                         distractor_defs.append(gemini_response.text.strip())
                     else:
                         distractor_defs.append(f"Incorrect option {len(distractor_defs) + 1} (AI generated placeholder).")

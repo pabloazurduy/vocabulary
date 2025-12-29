@@ -4,5 +4,5 @@ google-cloud-firestore
 gunicorn
 Flask-CORS
 requests
-google-generativeai
+google-genai
 python-dotenv
