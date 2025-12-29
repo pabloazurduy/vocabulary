@@ -1,34 +1,25 @@
-steps:
-  # Build the container image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID', '.']
-  
-  # Push the container image to Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID']
-  
-  # Deploy container image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args:
-    - 'run'
-    - 'deploy'
-    - 'vocabulary-app'
-    - '--image'
-    - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
-    - '--region'
-    - 'europe-west2'
-    - '--platform'
-    - 'managed'
-    - '--allow-unauthenticated'
-    - '--cpu-boost'
-    - '--timeout=300s'         # Extended timeout for container startup
-    - '--min-instances=0'      # Start with 0 instances to reduce costs
-    - '--update-secrets=GEMINI_API_KEY=gemini-api-key:latest'  # Reference to Secret Manager
-
-# Store the image for reference
-images:
-  - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
-
-# Configure timeouts
-timeout: '1200s'
+# steps:
+#   - name: 'gcr.io/cloud-builders/docker'
+#     args: ['build', '-t', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID', '.']
+#   - name: 'gcr.io/cloud-builders/docker'
+#     args: ['push', 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID']
+#   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+#     entrypoint: gcloud
+#     args:
+#     - 'run'
+#     - 'deploy'
+#     - 'vocabulary-app'
+#     - '--image'
+#     - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
+#     - '--region'
+#     - 'europe-west2'
+#     - '--platform'
+#     - 'managed'
+#     - '--allow-unauthenticated'
+#     - '--cpu-boost'
+#     - '--timeout=300s'
+#     - '--min-instances=0'
+#     - '--update-secrets=GEMINI_API_KEY=gemini-api-key:latest'
+# images:
+#   - 'gcr.io/$PROJECT_ID/vocabulary-app:$BUILD_ID'
+# timeout: '1200s'
